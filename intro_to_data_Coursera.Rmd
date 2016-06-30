@@ -243,6 +243,8 @@ this data frame as `sfo_feb_flights`. How many flights meet these criteria?
 ```{r sfo-feb-flights}
 # type your code for Question 1 here, and Knit
 
+ggplot(data = sfo_feb_flights, aes(x = arr_delay)) +
+  geom_histogram()
 ```
 
 
@@ -288,7 +290,9 @@ IQR of arrival delays?
 
 ```{r sfo-feb-flights-arrival-delays-carrier}
 # type your code for Question 3 here, and Knit
-
+sfo_feb_flights %>%
+  group_by(carrier) %>%
+  summarise(median_dd = median(arr_delay), iqr_dd = IQR(arr_delay), n = n())
 ```
 
 ### Departure delays over months
@@ -322,7 +326,10 @@ nycflights %>%
 
 ```{r highest-avg-dep-delay-month}
 # type your code for Question 4 here, and Knit
-
+nycflights %>%
+  group_by(month) %>%
+  summarise(mean_dd = mean(dep_delay)) %>%
+  arrange(desc(mean_dd))
 ```
 
 
@@ -337,7 +344,10 @@ nycflights %>%
 
 ```{r highest-median-dep-delay-month}
 # type your code for Question 5 here, and Knit
-
+nycflights %>%
+  group_by(month) %>%
+  summarise(median_dd = median(dep_delay)) %>%
+  arrange(desc(median_dd))
 ```
 
 
@@ -450,7 +460,19 @@ Google this tail number to find out more about the aircraft.
 
 ```{r fastest-avg-speed-tailnum}
 # type your code for Question 8 here, and Knit
+fastest_avg_speed <- nycflights %>%
+  mutate(avg_speed = distance / (air_time/60)) %>%
+  select(avg_speed, tailnum) %>%
+  arrange(desc(avg_speed), tailnum)
+fastest_avg_speed
+```
 
+```{r scatterplot-avg_speed-vs-distance}
+abc <- nycflights %>%
+  mutate(avg_speed = distance / (air_time/60))
+
+ggplot(data = abc, aes(x = distance, y = avg_speed)) +
+  geom_point()
 ```
 
 
@@ -477,8 +499,24 @@ frame to create a new variable called `arr_type` with levels `"on time"` and
 based on whether the flight departed on time or not. What proportion of flights  that 
 were `"delayed"` departing arrive `"on time"`? 
 [NUMERIC INPUT]
+```{r xyz}
+nycflights <- nycflights %>%
+  mutate(dep_type = ifelse(dep_delay < 5, "on time", "delayed"))
+
+nycflights %>%
+  group_by(origin) %>%
+  summarise(ot_dep_rate = sum(dep_type == "on time") / n()) %>%
+  arrange(desc(ot_dep_rate))
+```
+
 
 ```{r on-time-arr-perc}
 # type your code for Question 9 here, and Knit
+nycflights <- nycflights %>%
+  mutate(arr_type = ifelse(arr_delay <= 0, "on time", "delayed"))
 
+nycflights %>%
+  filter(dep_type == "delayed") %>%
+  summarise(ot_arr_rate = sum(arr_type == "on time") / n()) %>%
+  arrange(desc(ot_arr_rate))
 ```
